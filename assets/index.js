@@ -4,10 +4,11 @@ const $query = document.querySelector('#query');
 const $canvas = document.querySelector('#canvas');
 const ctx = $canvas.getContext('2d');
 
-var width, height, mouse = [];
+var width, height, mouse = [0, 0];
 var keys = new Set();
 var balls = new Map();
 var ball = null;
+var ws = null;
 
 
 
@@ -23,6 +24,12 @@ function randomColor() {
   return color;
 }
 
+function wsSend(data) {
+  if(ws.readyState!==WebSocket.OPEN) return;
+  var msg = JSON.stringify(data);
+  ws.send(msg);
+}
+
 function setupCanvas() {
   $canvas.width = width = innerWidth;
   $canvas.height = height = innerHeight-$form.clientHeight-5;
@@ -30,7 +37,7 @@ function setupCanvas() {
 
 function setupBall() {
   var id = randomText();
-  var name = $name.value;
+  var name = $name.value = id;
   var size = 10;
   var color = randomColor();
   var position = mouse;
@@ -38,9 +45,22 @@ function setupBall() {
   balls.set(id, ball);
 }
 
+function setupWs() {
+  ws = new WebSocket('ws://127.0.0.1:8000');
+  ws.onerror = (err) => console.error(err);
+  ws.onmessage = (e) => {
+    var data = JSON.parse(e.data);
+    var {type} = data;
+    if(type==='close') return balls.delete(data.id);
+    for(var b of data.values)
+      balls.set(b.id, b);
+  };
+}
+
 function setup() {
   setupCanvas();
   setupBall();
+  setupWs();
 }
 
 function drawBall(ball) {
@@ -60,7 +80,8 @@ function draw() {
   ctx.clearRect(0, 0, width, height);
   ctx.textAlign = 'center';
   for(var b of balls.values())
-    drawBall(b);
+    if(b) drawBall(b);
+  wsSend({type: 'ball', value: ball});
   requestAnimationFrame(draw);
 }
 

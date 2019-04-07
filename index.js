@@ -16,6 +16,7 @@ const ids = new Map();
 var updates = 0;
 
 
+
 function wsSendAll(data) {
   var msg = JSON.stringify(data);
   for(var ws of ids.keys())
@@ -37,17 +38,17 @@ wss.on('connection', (ws) => {
     console.log(`ws: ${id} disconnected`);
     ids.delete(ws);
     states.delete(id);
-    if(id) wsSendAll({type: 'disconnect', id});
+    if(id) wsSendAll({type: 'close', id});
   });
   ws.on('message', (msg) => {
     var data = JSON.parse(msg);
-    var {id} = data;
+    var {id} = data.value;
     ids.set(ws, id);
-    states.set(id, data);
+    states.set(id, data.value);
     updates++;
-    if(updates<ids.size) continue;
+    if(updates<ids.size) return;
     console.log('ws: sending update');
-    wsSendAll(states.values());
+    wsSendAll({type: 'balls', values: Array.from(states.values())});
     updates = 0;
   });
 });

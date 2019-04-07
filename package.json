@@ -1,0 +1,31 @@
+{
+  "name": "ias-centerofmass",
+  "version": "0.0.1",
+  "description": "Generate Tensorflow serving model for finding center of mass of a number of balls.",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iiithf/ias-centerofmass.git"
+  },
+  "keywords": [
+    "ias",
+    "center",
+    "mass",
+    "generate",
+    "tensorflow",
+    "serving",
+    "model"
+  ],
+  "author": "wolfram77@gmail.com",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/iiithf/ias-centerofmass/issues"
+  },
+  "homepage": "https://github.com/iiithf/ias-centerofmass#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}

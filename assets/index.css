@@ -1,0 +1,15 @@
+h1, h2 {
+  text-align: center;
+}
+
+body, form *, [btn] {
+  font-family: 'Baloo Chettan', cursive;
+}
+
+#query {
+  margin: 0;
+}
+
+#canvas {
+  width: 100%;
+}

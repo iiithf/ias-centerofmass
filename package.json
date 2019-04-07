@@ -1,0 +1,32 @@
+{
+  "name": "ias-centerofmass-glue",
+  "version": "0.0.1",
+  "description": "Glue service for center of mass model.",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.16.4",
+    "ws": "^6.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iiithf/ias-centerofmass.git"
+  },
+  "keywords": [
+    "ias",
+    "center",
+    "mass",
+    "glue",
+    "service",
+    "model"
+  ],
+  "author": "wolfram77@gmail.com",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/iiithf/ias-centerofmass/issues"
+  },
+  "homepage": "https://github.com/iiithf/ias-centerofmass#readme"
+}

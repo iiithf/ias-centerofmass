@@ -16,7 +16,13 @@ def com(row):
     mx += row[i]*row[i+1]
     my += row[i]*row[i+2]
   if m==0: return (-1, -1)
-  return (mx/m, my/m)
+  return np.array([mx/m, my/m])
+
+def mse(y, y_):
+  mse = 0
+  for i in range(len(y)):
+    mse += (y_[i] - y[i])**2
+  return mse
 
 def data_generate(count=10000, test=0.2):
   x, y = ([], [])
@@ -40,19 +46,28 @@ def ann_network(x):
 print('generating dataset:')
 train_x, test_x, train_y, test_y = data_generate()
 print('%d train rows, %d test rows' % (len(train_x), len(test_x)))
+print('test_x[0]:', test_x[0].shape)
+print('test_y[0]:', test_y[0].shape)
 
 print('\ndefining ann:')
-x = tf.placeholder(tf.float32, [None, INPUTS*3])
-y_ = tf.placeholder(tf.float32, [None, 2])
+x = tf.placeholder(tf.float32, [None, INPUTS*3], name='x')
+y_ = tf.placeholder(tf.float32, [None, 2], name='y_')
 y = ann_network(x)
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y, labels=y_))
+cost = tf.reduce_sum(tf.pow(y-y_, 2)) / (2 * len(train_x)) 
 train = tf.train.GradientDescentOptimizer(RATE).minimize(cost)
+# cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y, labels=y_))
 
 print('\nstarting training:')
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 for epoch in range(EPOCHS):
-  sess.run(train, {'x': train_x, 'y_': train_y})
-  accuracy = sess.run(tf.reduce_mean(y-y_), {x: train_x, y_: train_y})
-  print('Epoch %d: %f accuracy' % (epoch, accuracy))
+  sess.run(train, {x: train_x, y_: train_y})
+  err = sess.run(cost, {x: train_x, y_: train_y})
+  print('Epoch %d: %f mse' % (epoch, err))
 
+print('\ntesting:')
+mse_total = 0
+yv = sess.run(y, {x: test_x, y_: test_y})
+for i in range(len(yv)):
+  mse_total += mse(yv[i], test_y[i])
+print('mse avg:', mse_total/len(yv))

@@ -7,7 +7,7 @@ import shutil
 
 
 MODEL = 'build/0'
-INPUTS = 100
+INPUTS = 3 # 100
 RATE = 0.1
 EPOCHS = 200
 
@@ -45,6 +45,11 @@ def ann_network(x):
   h3 = tf.nn.sigmoid(ann_layer(h2, [INPUTS, 30]))
   return ann_layer(h3, [30, 2])
 
+def regress_signature(x, y, sign):
+  inputs = {'inputs': tf.saved_model.build_tensor_info(x)}
+  outputs = {'outputs': tf.saved_model.build_tensor_info(y)}
+  return tf.saved_model.build_signature_def(inputs, outputs, sign)
+
 
 print('generating dataset:')
 train_x, test_x, train_y, test_y = data_generate()
@@ -52,7 +57,14 @@ print('%d train rows, %d test rows' % (len(train_x), len(test_x)))
 print('test_x[0]:', test_x[0].shape)
 print('test_y[0]:', test_y[0].shape)
 
+print('\ndefining api:')
+#serialized = tf.placeholder(tf.string, name='tf_example')
+#features = {'mxy': tf.FixedLenFeature(shape=INPUTS*3, dtype=tf.string)}
+#example = tf.parse_example(serialized, features)
+#example_mxy = tf.to_float(example['mxy'])
+
 print('\ndefining ann:')
+# x = tf.identity(example_mxy, name='x')
 x = tf.placeholder(tf.float32, [None, INPUTS*3], name='x')
 y_ = tf.placeholder(tf.float32, [None, 2], name='y_')
 y = ann_network(x)
@@ -70,6 +82,11 @@ for epoch in range(EPOCHS):
   sess.run(train, {x: train_x, y_: train_y})
   err = sess.run(cost, {x: train_x, y_: train_y})
   print('Epoch %d: %f mse' % (epoch, err))
+signatures = {
+  'serving_default': regress_signature(x, y, 'tensorflow/serving/regress'),
+  'regress': regress_signature(x, y, 'tensorflow/serving/regress')
+}
+builder.add_meta_graph_and_variables(sess, ['serve'], signatures, main_op=tf.tables_initializer(), strip_default_attrs=True)
 builder.save()
 
 print('\ntesting:')

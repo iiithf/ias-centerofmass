@@ -68,10 +68,10 @@ function drawBall(ball) {
   var [x, y] = position;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(x, y, size, 0, 2*Math.PI);
+  ctx.arc(x*width, y*height, size, 0, 2*Math.PI);
   ctx.fill();
   ctx.fillStyle = 'black';
-  ctx.fillText(name, x, y-size-5);
+  ctx.fillText(name, x*width, y*height-size-5);
 }
 
 function draw() {
@@ -86,8 +86,8 @@ function draw() {
 }
 
 function onMouseMove(e) {
-  mouse[0] = e.clientX+4;
-  mouse[1] = e.clientY-$form.clientHeight;
+  mouse[0] = (e.clientX+4)/width;
+  mouse[1] = (e.clientY-$form.clientHeight)/height;
 }
 function onKeyDown(e) {
   keys.add(e.key);

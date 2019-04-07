@@ -1,6 +1,6 @@
 {
   "name": "ias-centerofmass",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Generate Tensorflow serving model for finding center of mass of a number of balls.",
   "main": "index.js",
   "scripts": {

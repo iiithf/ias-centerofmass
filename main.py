@@ -2,8 +2,11 @@
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import numpy as np
+import os
+import shutil
 
 
+MODEL = 'build/0'
 INPUTS = 100
 RATE = 0.1
 EPOCHS = 200
@@ -58,12 +61,16 @@ train = tf.train.GradientDescentOptimizer(RATE).minimize(cost)
 # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y, labels=y_))
 
 print('\nstarting training:')
+if os.path.exists(MODEL):
+  shutil.rmtree(MODEL)
 sess = tf.Session()
+builder = tf.saved_model.Builder(MODEL)
 sess.run(tf.global_variables_initializer())
 for epoch in range(EPOCHS):
   sess.run(train, {x: train_x, y_: train_y})
   err = sess.run(cost, {x: train_x, y_: train_y})
   print('Epoch %d: %f mse' % (epoch, err))
+builder.save()
 
 print('\ntesting:')
 mse_total = 0

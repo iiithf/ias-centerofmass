@@ -3,8 +3,9 @@ const $name = document.querySelector('#name');
 const $query = document.querySelector('#query');
 const $canvas = document.querySelector('#canvas');
 const ctx = $canvas.getContext('2d');
+const LETTERS = '0123456789ABCDEF';
 
-var width, height, mouse = [0, 0];
+var width, height, mouse = {x: 0, y: 0};
 var keys = new Set();
 var balls = new Map();
 var ball = null;
@@ -17,11 +18,9 @@ function randomText() {
 }
 
 function randomColor() {
-  var letters = '0123456789ABCDEF';
-  var color = '#';
-  for (var i = 0; i < 6; i++)
-    color += letters[Math.floor(Math.random() * 16)];
-  return color;
+  for (var c='#', i=0; i<6; i++)
+    c += LETTERS[Math.floor(Math.random()*16)];
+  return c;
 }
 
 function wsSend(data) {
@@ -38,10 +37,9 @@ function setupCanvas() {
 function setupBall() {
   var id = randomText();
   var name = $name.value = id;
-  var size = 10;
-  var color = randomColor();
-  var position = mouse;
-  ball = {id, name, size, color, position};
+  var {x, y} = mouse, radius = 0.2;
+  var fillStyle = randomColor();
+  ball = {id, name, x, y, radius, fillStyle};
   balls.set(id, ball);
 }
 
@@ -53,7 +51,7 @@ function setupWs() {
     var {type} = data;
     if(type==='close') return balls.delete(data.id);
     for(var b of data.values)
-      balls.set(b.id, b);
+      if(b.id!==ball.id) balls.set(b.id, b);
   };
 }
 
@@ -64,45 +62,49 @@ function setup() {
 }
 
 function drawBall(ball) {
-  var {name, size, color, position} = ball;
-  var [x, y] = position;
-  ctx.fillStyle = color;
+  var {name, x, y, radius, fillStyle} = ball;
+  ctx.fillStyle = fillStyle;
   ctx.beginPath();
-  ctx.arc(x*width, y*height, size, 0, 2*Math.PI);
+  ctx.arc(x*width, y*height, radius*50, 0, 2*Math.PI);
   ctx.fill();
   ctx.fillStyle = 'black';
-  ctx.fillText(name, x*width, y*height-size-5);
+  ctx.fillText(name, x*width, y*height-radius*50-5);
 }
 
 function draw() {
-  if(keys.has('+') && ball.size<50) ball.size++;
-  if(keys.has('-') && ball.size>5) ball.size--;
+  if(keys.has('+') && ball.radius<1) ball.radius += 0.01;
+  if(keys.has('-') && ball.radius>0.2) ball.radius -= 0.01;
+  ball.x += 0.01*(Math.random()-0.5);
+  ball.y += 0.01*(Math.random()-0.5);
   ctx.clearRect(0, 0, width, height);
   ctx.textAlign = 'center';
   for(var b of balls.values())
     if(b) drawBall(b);
-  wsSend({type: 'ball', value: ball});
   requestAnimationFrame(draw);
 }
 
 function onMouseMove(e) {
-  mouse[0] = (e.clientX+4)/width;
-  mouse[1] = (e.clientY-$form.clientHeight)/height;
+  mouse.x = (e.clientX+4)/width;
+  mouse.y = (e.clientY-$form.clientHeight)/height;
+  wsSend({type: 'ball', value: ball});
 }
 function onKeyDown(e) {
   keys.add(e.key);
+ wsSend({type: 'ball', value: ball});
 }
 function onKeyUp(e) {
   keys.delete(e.key);
+ wsSend({type: 'ball', value: ball});
 }
 function onRename(e) {
   ball.name = $name.value;
+ wsSend({type: 'ball', value: ball});
 }
-
 
 setup();
 requestAnimationFrame(draw);
 document.onmousemove = onMouseMove;
 document.onkeydown = onKeyDown;
 document.onkeyup = onKeyUp;
+document.onresize = setupCanvas;
 $name.onchange = onRename;

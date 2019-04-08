@@ -8,12 +8,12 @@ const path = require('path');
 const E = process.env;
 const PORT = parseInt(E['PORT']||'8000', 10);
 const ASSETS = path.join(__dirname, 'assets');
+const UPDATEINTERVAL = 1000;
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
 const states = new Map();
 const ids = new Map();
-var updates = 0;
 
 
 
@@ -45,13 +45,12 @@ wss.on('connection', (ws) => {
     var {id} = data.value;
     ids.set(ws, id);
     states.set(id, data.value);
-    updates++;
-    if(updates<ids.size) return;
-    console.log('ws: sending update');
-    wsSendAll({type: 'balls', values: Array.from(states.values())});
-    updates = 0;
   });
 });
+setInterval(() => {
+  console.log('ws: sending update');
+  wsSendAll({type: 'balls', values: Array.from(states.values())});
+}, UPDATEINTERVAL);
 
 app.use(express.static(ASSETS, {extensions: ['html']}));
 app.use((err, req, res, next) => {

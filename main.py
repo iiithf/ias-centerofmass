@@ -7,7 +7,7 @@ import shutil
 
 
 MODEL = 'build/0'
-INPUTS = 3 # 100
+INPUTS = 10 # 100
 RATE = 0.1
 EPOCHS = 200
 

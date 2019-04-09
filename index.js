@@ -13,6 +13,9 @@ const INPUTS = 10;
 var ball = null;
 
 
+function mathWithin(value, begin, end) {
+  return Math.max(begin, Math.min(value, end));
+}
 
 function randomString() {
   return Math.random().toString(36).substring(7);
@@ -30,8 +33,8 @@ function randomColor() {
 
 function inputsMapBalls(balls) {
   var inputs = [];
-  for(var b of balls)
-    inputs.push(b.r, b.x, b.y);
+  for(var b of balls||[])
+    if(b) inputs.push(b.r, b.x, b.y);
   for(var i=inputs.length, I=INPUTS*3; i<I; i++)
     inputs.push(0);
   return inputs;
@@ -39,16 +42,17 @@ function inputsMapBalls(balls) {
 
 function ballMapOutputs(outputs, ball) {
   var [x, y] = outputs, b = ball;
-  b.x = b.x+Math.max(x-b.x, 0.1);
-  b.y = b.y+Math.max(y-b.y, 0.1);
-  b.x = Math.max(0, Math.min(b.x, 1));
-  b.y = Math.max(0, Math.min(b.y, 1));
+  b.x = b.x+mathWithin(x-b.x, -0.05, 0.05);
+  b.y = b.y+mathWithin(y-b.y, -0.05, 0.05);
+  b.x = mathWithin(b.x, 0, 1);
+  b.y = mathWithin(b.y, 0, 1);
   return b;
 }
 
 function ballSetup() {
   var id = randomString(), name = CONTAINER||'model_'+id;
-  return ball = {id, name, x: 0, y: 0, r: 0.2, fill: randomColor()};
+  ball = {id, name, x: 0, y: 0, r: 0.2, fill: randomColor()};
+  console.log('ball', ball);
 }
 
 
@@ -58,14 +62,17 @@ async function modelRun(inputs) {
   return res.body.outputs[0];
 }
 
-function onRecieveUpdate(balls) {
+async function onRecieveUpdate(balls) {
   var inputs = inputsMapBalls(balls);
-  var outputs = modelRun(inputs);
+  var outputs = await modelRun(inputs);
   ball = ballMapOutputs(outputs, ball);
-  ws.send({type: 'update', data: ball});
+  wsSend({type: 'update', data: ball});
+  console.log('onRecieveUpdate()', ball);
 }
 
 
-
-ws.onmessage = (e) => onRecieveUpdate(e.data);;
+function wsSend(data) {
+  ws.send(JSON.stringify(data));
+}
+ws.onmessage = (e) => onRecieveUpdate(JSON.parse(e.data).data);
 ballSetup();

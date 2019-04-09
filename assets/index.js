@@ -38,8 +38,12 @@ function svgSetup() {
 
 
 function ballCreate(b) {
-  b.svg = s.circle(0, 0, b.r*50);
-  b.svg.attr({fill: b.fill});
+  var text = s.text(0, 0, b.name);
+  text.attr({fill: '#000'});
+  var circle = s.circle(0, 0, b.r*50);
+  circle.attr({fill: b.fill});
+  b.svg = s.group(circle, text);
+  Object.assign(b.svg, {text, circle});
   return b;
 }
 
@@ -50,13 +54,15 @@ function ballData(b) {
 }
 
 function ballUpdate(b) {
-  var attr = {transform: `t${b.x*width},${b.y*height}`, r: b.r*50};
-  b.svg.animate(attr, UPDATETIME);
+  b.svg.animate({transform: `t${b.x*width},${b.y*height}`}, UPDATETIME);
+  b.svg.circle.animate({r: b.r*50}, UPDATETIME);
+  b.svg.text.attr({text: b.name});
 }
 
 function ballSetup() {
+  $name.value = randomText();
   var b = {
-    id: randomText(), name: $name.value,
+    id: $name.value, name: $name.value,
     x: mouse.x, y: mouse.y, r: 0.2,
     fill: randomColor(), svg: null,
   };
@@ -149,6 +155,4 @@ setup();
 document.onmousemove = onMouseMove;
 document.onkeyup = onKeyUp;
 document.onresize = svgSetup;
-document.onmouseenter = () => mousein = true;
-document.onmous
 $name.onchange = onRename;

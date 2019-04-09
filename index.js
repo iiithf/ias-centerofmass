@@ -42,7 +42,6 @@ function onMessage(ws, msg) {
 
 
 function usersUpdate() {
-  console.log('updating users:', users.size);
   var data = Array.from(users.values());
   wsSendAll({type: 'update', data});
 }

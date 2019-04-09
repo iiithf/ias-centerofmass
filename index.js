@@ -8,20 +8,45 @@ const path = require('path');
 const E = process.env;
 const PORT = parseInt(E['PORT']||'8000', 10);
 const ASSETS = path.join(__dirname, 'assets');
-const UPDATEINTERVAL = 1000;
+const UPDATETIME = 200;
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
-const states = new Map();
-const ids = new Map();
+var users = new Map();
 
 
 
 function wsSendAll(data) {
   var msg = JSON.stringify(data);
-  for(var ws of ids.keys())
+  for(var ws of users.keys())
     ws.send(msg);
 }
+
+function onConnection(ws) {
+  users.set(ws, null);
+  console.log('user connected');
+}
+
+function onClose(ws) {
+  var data = users.get(ws);
+  console.log('user closed', data);
+  users.delete(ws);
+  if(data) wsSendAll({type: 'close', data});
+}
+
+function onMessage(ws, msg) {
+  var p = JSON.parse(msg);
+  users.set(ws, p.data);
+}
+
+
+
+function usersUpdate() {
+  console.log('updating users:', users.size);
+  var data = Array.from(users.values());
+  wsSendAll({type: 'update', data});
+}
+
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -31,26 +56,11 @@ app.use((req, res, next) => {
 });
 
 wss.on('connection', (ws) => {
-  ids.set(ws, null);
-  console.log('ws: someone connected');
-  ws.on('close', () => {
-    var id = ids.get(ws);
-    console.log(`ws: ${id} disconnected`);
-    ids.delete(ws);
-    states.delete(id);
-    if(id) wsSendAll({type: 'close', id});
-  });
-  ws.on('message', (msg) => {
-    var data = JSON.parse(msg);
-    var {id} = data.value;
-    ids.set(ws, id);
-    states.set(id, data.value);
-  });
+  onConnection(ws);
+  ws.on('close', () => onClose(ws));
+  ws.on('message', (msg) => onMessage(ws, msg));
 });
-setInterval(() => {
-  console.log('ws: sending update');
-  wsSendAll({type: 'balls', values: Array.from(states.values())});
-}, UPDATEINTERVAL);
+setInterval(() => usersUpdate(), UPDATETIME);
 
 app.use(express.static(ASSETS, {extensions: ['html']}));
 app.use((err, req, res, next) => {

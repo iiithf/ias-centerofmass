@@ -136,8 +136,12 @@ function onAuto() {
   if(t-mtime<5) return;
   ballv.x += 0.01*(Math.random()-0.5);
   ballv.y += 0.01*(Math.random()-0.5);
-  var x = Math.max(0, Math.min(ball.x+ballv.x, 1));
-  var y = Math.max(0, Math.min(ball.y+ballv.y, 1));
+  var x = ball.x+ballv.x;
+  var y = ball.y+ballv.y;
+  if(x<0 || x>1) ballv.x = -ballv.x;
+  if(y<0 || y>1) ballv.y = -ballv.y;
+  x = Math.max(0, Math.min(x, 1));
+  y = Math.max(0, Math.min(y, 1));
   moveBall(ball, {x, y});
 }
 setInterval(onAuto, UPDATETIME);

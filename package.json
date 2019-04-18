@@ -1,6 +1,6 @@
 {
   "name": "ias-centerofmass-glue",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Glue service for center of mass model.",
   "main": "index.js",
   "dependencies": {
@@ -10,6 +10,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node ./",
     "test": "exit"
   },
   "repository": {
